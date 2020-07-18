@@ -1,0 +1,31 @@
+{
+  "name": "nyaa-comments",
+  "version": "1.0.0",
+  "description": "A scraper for listing all comments on a user's page",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src",
+    "lint": "tslint ./src/**/*.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "nyaa",
+    "comments",
+    "scraper",
+    "rss"
+  ],
+  "author": "Abhishek Datta",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cheerio": "^0.22.21",
+    "@types/request-promise-native": "^1.0.17",
+    "ts-node": "^8.10.2",
+    "tslint": "^6.1.2",
+    "typescript": "^3.9.7"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8"
+  }
+}

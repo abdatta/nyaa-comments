@@ -1,0 +1,12 @@
+# node modules
+node_modules
+
+# IDE configs
+.idea
+.vscode
+
+# environment variables
+*.env
+
+# Compiled js files
+dist/
