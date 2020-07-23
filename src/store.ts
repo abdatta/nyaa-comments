@@ -1,21 +1,17 @@
-import { connect, Schema, model, Document } from 'mongoose';
-import { NyaaComment } from '.';
+import { createConnection, Connection } from 'mongoose';
 
-export const connectStore = async () => {
-    await connect('mongodb://localhost/my_database', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    });
-};
+export class Store {
 
-export const NyaaCommentSchema = new Schema<NyaaComment>({
-    user: { type: String },
-    timestamp: { type: Number },
-    comment: { type: String },
-    commentId: { type: String, unique: true, required: true},
-    nyaaId: {type: String, index: true, required: true}
-});
+    public connection: Connection;
 
-export interface NyaaCommentDocument extends NyaaComment, Document {}
+    constructor() {
+        const dbaddr: string = process.env.DB_ADDR || 'localhost';
+        const dbport: string = process.env.DB_PORT || '27017';
+        const dbname: string = process.env.DB_NAME || 'nyaa_scraper';
+        const dbuser: string = process.env.DB_USER || '';
+        const dbpass: string = process.env.DB_PASS || '';
+        const MONGODB_CONNECTION = `mongodb://${dbuser}:${dbpass}@${dbaddr}:${dbport}/${dbname}?authSource=admin`;
 
-export const nyaaCommentModel = model<NyaaCommentDocument>('nyaa_comment', NyaaCommentSchema);
+        this.connection = createConnection(MONGODB_CONNECTION);
+    }
+}
