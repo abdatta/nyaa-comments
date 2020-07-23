@@ -12,6 +12,11 @@ export class Store {
         const dbpass: string = process.env.DB_PASS || '';
         const MONGODB_CONNECTION = `mongodb://${dbuser}:${dbpass}@${dbaddr}:${dbport}/${dbname}?authSource=admin`;
 
-        this.connection = createConnection(MONGODB_CONNECTION);
+        this.connection = createConnection(MONGODB_CONNECTION, {
+            useNewUrlParser: true,
+            useFindAndModify: false,
+            useCreateIndex: true,
+            useUnifiedTopology: true
+        });
     }
 }

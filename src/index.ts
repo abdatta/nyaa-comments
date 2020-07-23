@@ -1,39 +1,24 @@
-import { get } from "request-promise-native";
-import { load } from "cheerio";
+import { config } from 'dotenv'; config();
+import { Store } from './store';
+import { Repository } from './repository';
+import { Scraper } from './scraper';
 
-export const scrapeItems = async (user: string, page = 1): Promise<NyaaItem[]> => {
-    const $ = load(await get(`https://nyaa.si/user/${user}?p=${page}`));
-    const rawItems = $('table.torrent-list > tbody > tr').toArray();
-    return rawItems.map(item => ({
-        comments: +($(item).find('td[colspan=2]').find('a.comments').text().trim()),
-        name: $(item).find('td[colspan=2]').find('a:not(.comments)').text().trim(),
-        nyaaId: $(item).find('td[colspan=2]').find('a:not(.comments)').attr('href')?.slice('/view/'.length) ?? '',
-        timestamp: +($(item).find('td[data-timestamp]').attr('data-timestamp') ?? '') * 1000
+const store = new Store();
+const repository = new Repository(store);
+const scraper = new Scraper();
+
+const main = async () => {
+    const user = process.env.NYAA_USER || '';
+    console.log(`Searching for new comments on ${user}'s torrents`);
+    const items = [...await scraper.scrapeItems(user, 1), ...await scraper.scrapeItems(user, 2)]
+    await Promise.all(items.filter(item => item.comments).map(async item => {
+        const exists = await repository.countComments(item.nyaaId);
+        if (item.comments <= exists) return;
+        console.log(`Found new comments on torrent: ${item.name}`)
+        const comments = await scraper.scrapeComments(item.nyaaId);
+        await Promise.all(comments.map(comment => repository.upsertComments(comment)));
     }))
-}
+};
 
-export const scrapeComments = async (nyaaId: string): Promise<NyaaComment[]> => {
-    const $ = load(await get(`https://nyaa.si/view/${nyaaId}`));
-    const rawComments = $('#comments > div > [id^=com-]').toArray();
-    return rawComments.map(comment => ({
-        nyaaId, user: $(comment).find('[title=User]').text().trim(),
-        comment: $(comment).find('.comment-body > div[id^=torrent-comment]').text().trim(),
-        commentId: $(comment).find('.comment-body > div[id^=torrent-comment]').attr('id') ?? '',
-        timestamp: +($(comment).find('[data-timestamp]').attr('data-timestamp') ?? '') * 1000
-    }));
-}
-
-export interface NyaaItem {
-    comments: number;
-    name: string;
-    nyaaId: string;
-    timestamp: number
-}
-
-export interface NyaaComment {
-    user: string;
-    timestamp: number;
-    comment: string;
-    commentId: string;
-    nyaaId: string;
-}
+const interval = parseInt(process.env.NYAA_INTERVAL || '15') * 60 * 1000;
+setInterval(main, interval);
