@@ -24,11 +24,13 @@ export class Scraper {
         }))
     }
 
-    async scrapeComments(nyaaId: string): Promise<NyaaComment[]> {
-        const $ = load(await this.get(`https://nyaa.si/view/${nyaaId}`));
+    async scrapeComments(nyaaItem: NyaaItem): Promise<NyaaComment[]> {
+        const $ = load(await this.get(`https://nyaa.si/view/${nyaaItem.nyaaId}`));
         const rawComments = $('#comments > div > [id^=com-]').toArray();
         return rawComments.map(comment => ({
-            nyaaId, user: $(comment).find('[title=User]').text().trim(),
+            nyaaId: nyaaItem.nyaaId, torrentName: nyaaItem.name,
+            user: $(comment).find('[title=User]').text().trim(),
+            avatar: $(comment).find('img.avatar').attr('src') ?? '',
             comment: $(comment).find('.comment-body > div[id^=torrent-comment]').text().trim(),
             commentId: $(comment).find('.comment-body > div[id^=torrent-comment]').attr('id') ?? '',
             timestamp: +($(comment).find('[data-timestamp]').attr('data-timestamp') ?? '') * 1000

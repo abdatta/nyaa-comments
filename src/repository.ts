@@ -5,10 +5,12 @@ import { Schema } from "mongoose";
 export class Repository {
     private nyaaCommentModel = this.store.connection.model<NyaaCommentDocument>('nyaa_comment', new Schema({
         user: { type: String },
+        avatar: { type: String },
         timestamp: { type: Number },
         comment: { type: String },
-        commentId: { type: String, unique: true, required: true},
-        nyaaId: {type: String, index: true, required: true}
+        commentId: { type: String, unique: true, required: true },
+        nyaaId: { type: String, index: true, required: true },
+        torrentName: { type: String }
     }));
 
     constructor(private store: Store) {

@@ -17,9 +17,10 @@ const main = async () => {
     await Promise.all(items.filter(item => item.comments).map(async item => {
         const exists = await repository.countComments(item.nyaaId);
         if (item.comments <= exists) return;
-        console.log(`Found new comments on torrent: ${item.name}`)
-        const comments = await scraper.scrapeComments(item.nyaaId);
+        console.log(`Found new comments on torrent: ${item.name}`);
+        const comments = await scraper.scrapeComments(item);
         await Promise.all(comments.map(comment => repository.upsertComments(comment)));
+        console.log(`Updated ${item.comments} comments on torrent: ${item.name}`);
     }))
 };
 
