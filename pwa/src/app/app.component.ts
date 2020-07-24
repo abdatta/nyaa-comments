@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AppService } from './app.service';
+import { NyaaComment } from '../../../src/types';
 
 @Component({
   selector: 'app-root',
@@ -8,9 +10,9 @@ import { Component } from '@angular/core';
       <mat-card-header>
         <div mat-card-avatar [style.background-image]="'url(' + comment.avatar +')'" style="background-size: cover;"></div>
         <mat-card-title>{{ comment.user }}</mat-card-title>
-        <mat-card-subtitle>{{ comment.comment }}</mat-card-subtitle>
+        <mat-card-subtitle style="overflow-wrap: anywhere;">{{ comment.comment }}</mat-card-subtitle>
       </mat-card-header>
-      <mat-card-content>
+      <mat-card-content class="content">
         <a href="https://nyaa.si/view/{{comment.nyaaId}}#{{comment.commentId}}" target="_blank">{{ comment.torrentName }}</a>
       </mat-card-content>
     </mat-card>
@@ -32,9 +34,21 @@ import { Component } from '@angular/core';
     width: 90%;
     max-width: 400px;
     margin: 10px;
-  }`]
-})
+  }
 
-export class AppComponent {
-  comments = []
+  .content {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  `]
+})
+export class AppComponent implements OnInit {
+  comments: NyaaComment[] = [];
+
+  constructor(private service: AppService) { }
+
+  async ngOnInit() {
+    this.comments = await this.service.fetchComments();
+  }
 }
