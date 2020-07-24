@@ -1,11 +1,13 @@
 import express, { Handler, json } from 'express';
 import { Repository } from './repository';
+import { join } from 'path';
 
 export class Server {
     private server = express();
 
     constructor(private repository: Repository) {
         this.server.use(json());
+        this.server.use(express.static(join(__dirname, 'public')));
         this.server.get('/api/comments', this.fetchCommentsList);
     }
 
