@@ -2,10 +2,13 @@ import { config } from 'dotenv'; config();
 import { Store } from './store';
 import { Repository } from './repository';
 import { Scraper } from './scraper';
+import { Server } from './server';
 
 const store = new Store();
 const repository = new Repository(store);
 const scraper = new Scraper();
+
+new Server(repository).start();
 
 const main = async () => {
     const user = process.env.NYAA_USER || '';
@@ -20,5 +23,5 @@ const main = async () => {
     }))
 };
 
-const interval = parseInt(process.env.NYAA_INTERVAL || '15') * 60 * 1000;
+const interval = (parseInt(process.env.NYAA_INTERVAL!) || 15) * 60 * 1000;
 setInterval(main, interval);

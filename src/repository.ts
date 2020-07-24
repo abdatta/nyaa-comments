@@ -21,4 +21,9 @@ export class Repository {
     async upsertComments(comment: NyaaComment): Promise<void> {
         await this.nyaaCommentModel.updateOne({ commentId: comment.commentId }, comment, { upsert: true }).exec();
     }
+
+    async fetchComments(nyaaId?: string): Promise<NyaaCommentDocument[]> {
+        return this.nyaaCommentModel.find(nyaaId ? { nyaaId } : {})
+                                    .sort({ timestamp: -1 }).exec();
+    }
 }
