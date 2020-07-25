@@ -12,4 +12,8 @@ export class AppService {
   fetchComments(nyaaId?: string): Promise<NyaaComment[]> {
     return this.httpClient.get<NyaaComment[]>('/api/comments', { params: nyaaId ? { nyaaId } : {}}).toPromise();
   }
+
+  saveSubscription(sub: PushSubscription) {
+    return this.httpClient.post('/api/subscriptions', { sub }).toPromise();
+  }
 }

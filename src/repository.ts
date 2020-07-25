@@ -1,6 +1,7 @@
 import { Store } from "./store"
-import { NyaaComment, NyaaCommentDocument } from "./types";
+import { NyaaComment, NyaaCommentDocument, PushSubscriptionDocument } from "./types";
 import { Schema } from "mongoose";
+import { PushSubscription } from "web-push";
 
 export class Repository {
     private nyaaCommentModel = this.store.connection.model<NyaaCommentDocument>('nyaa_comment', new Schema({
@@ -11,6 +12,14 @@ export class Repository {
         commentId: { type: String, unique: true, required: true },
         nyaaId: { type: String, index: true, required: true },
         torrentName: { type: String }
+    }));
+
+    private pushSubscriptionModel = this.store.connection.model<PushSubscriptionDocument>('push_subscription', new Schema({
+        endpoint: { type: String, required: true },
+        keys: { type: {
+            p256dh: { type: String },
+            auth: { type: String }
+        }}
     }));
 
     constructor(private store: Store) {
@@ -27,5 +36,13 @@ export class Repository {
     async fetchComments(nyaaId?: string): Promise<NyaaCommentDocument[]> {
         return this.nyaaCommentModel.find(nyaaId ? { nyaaId } : {})
                                     .sort({ timestamp: -1 }).exec();
+    }
+
+    async saveSubscription(sub: PushSubscription): Promise<void> {
+        await this.pushSubscriptionModel.create(sub);
+    }
+
+    async getSubscriptions(): Promise<PushSubscriptionDocument[]> {
+        return this.pushSubscriptionModel.find().exec();
     }
 }

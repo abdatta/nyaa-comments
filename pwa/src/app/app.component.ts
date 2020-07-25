@@ -63,12 +63,12 @@ export class AppComponent implements OnInit {
   }
 
   async subscribeToNotifications() {
-    if (Notification.permission === "granted") { return; }
+    if (Notification.permission === 'granted') { return; }
     await this.delay(5000);
     if (await this.prompt('Allow notifications')) {
       await this.swPush.requestSubscription({ serverPublicKey: environment.vapidKey })
-        .then(sub => console.log(sub))
-        .catch(err => console.error("Could not subscribe to notifications", err));
+        .then(sub => this.service.saveSubscription(sub))
+        .catch(err => console.error('Could not subscribe to notifications', err));
     }
 }
 

@@ -1,4 +1,5 @@
 import { Document } from "mongoose";
+import { PushSubscription } from "web-push";
 
 export interface NyaaItem {
     comments: number;
@@ -18,3 +19,5 @@ export interface NyaaComment {
 }
 
 export interface NyaaCommentDocument extends NyaaComment, Document {}
+
+export interface PushSubscriptionDocument extends PushSubscription, Document {}
