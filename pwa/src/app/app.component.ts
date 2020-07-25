@@ -4,6 +4,8 @@ import { NyaaComment } from '../../../src/types';
 import { DeviceDetectorService } from 'ngx-device-detector';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { PromptComponent } from './prompt.component';
+import { SwPush } from '@angular/service-worker';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -48,14 +50,27 @@ import { PromptComponent } from './prompt.component';
 })
 export class AppComponent implements OnInit {
   comments: NyaaComment[] = [];
+  private promptToClose = Promise.resolve();
 
   constructor(private service: AppService,
+              private swPush: SwPush,
               private bottomSheet: MatBottomSheet,
               private deviceService: DeviceDetectorService) { }
 
   async ngOnInit() {
     this.comments = await this.service.fetchComments();
+    await this.subscribeToNotifications();
   }
+
+  async subscribeToNotifications() {
+    if (Notification.permission === "granted") { return; }
+    await this.delay(5000);
+    if (await this.prompt('Allow notifications')) {
+      await this.swPush.requestSubscription({ serverPublicKey: environment.vapidKey })
+        .then(sub => console.log(sub))
+        .catch(err => console.error("Could not subscribe to notifications", err));
+    }
+}
 
   @HostListener('window:beforeinstallprompt', ['$event'])
   async beforeInstallPrompt(event: Event & Window) {
@@ -64,14 +79,18 @@ export class AppComponent implements OnInit {
 
     // Open prompt if device is mobile
     if (this.deviceService.isMobile()) {
-      // Open prompt after .2 seconds
-      await this.delay(200);
-      const bsRef = this.bottomSheet.open<PromptComponent, string, boolean>(PromptComponent, { disableClose: true, data: 'Add as an app' });
-      const response = await bsRef.afterDismissed().toPromise();
-      if (response) {
+      if (await this.prompt('Add as an app')) {
         event.prompt();
       }
     }
+  }
+
+  async prompt(text: string): Promise<boolean> {
+    await this.promptToClose;
+    const bsRef = this.bottomSheet.open<PromptComponent, string, boolean>(PromptComponent, { disableClose: true, data: text });
+    const response = bsRef.afterDismissed().toPromise();
+    this.promptToClose = response.then(() => Promise.resolve());
+    return response;
   }
 
   delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
