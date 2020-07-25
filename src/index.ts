@@ -3,6 +3,8 @@ import { Store } from './store';
 import { Repository } from './repository';
 import { Scraper } from './scraper';
 import { Server } from './server';
+import { sendNotification, setVapidDetails } from 'web-push';
+import { NyaaComment } from './types';
 
 const store = new Store();
 const repository = new Repository(store);
@@ -21,8 +23,27 @@ const main = async () => {
         const comments = await scraper.scrapeComments(item);
         await Promise.all(comments.map(comment => repository.upsertComments(comment)));
         console.log(`Updated ${item.comments} comments on torrent: ${item.name}`);
+        comments.slice(exists, item.comments).forEach(notify);
     }))
 };
+
+setVapidDetails(process.env.VAPID_SUBJECT!, process.env.VAPID_PUBLIC_KEY!, process.env.VAPID_PRIVATE_KEY!);
+
+const notify = async (comment: NyaaComment) => {
+    if (process.env.SEND_NOTIFICATIONS !== 'true') { return; }
+
+    const notification = {
+        title: `New Comment by ${comment.user}`,
+        body: comment.comment,
+        icon: comment.avatar,
+        vibrate: [100, 50, 100]
+    };
+
+    const allSubscriptions = await repository.getSubscriptions();
+
+    await Promise.all(allSubscriptions.map(sub => sendNotification(sub, JSON.stringify({ notification }))));
+    console.log(`Notification sent for ${notification.title}`);
+}
 
 const interval = (parseInt(process.env.NYAA_INTERVAL!) || 15) * 60 * 1000;
 setInterval(main, interval);
