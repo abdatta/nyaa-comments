@@ -58,14 +58,21 @@ export class AppComponent implements OnInit {
   }
 
   @HostListener('window:beforeinstallprompt', ['$event'])
-  beforeInstallPrompt(event: Event) {
+  async beforeInstallPrompt(event: Event & Window) {
     // Prevent Chrome 67 and earlier from automatically showing the prompt
     event.preventDefault();
 
     // Open prompt if device is mobile
     if (this.deviceService.isMobile()) {
       // Open prompt after .2 seconds
-      setTimeout(() => this.bottomSheet.open(PromptComponent, { disableClose: true, data: event }), 200)
+      await this.delay(200);
+      const bsRef = this.bottomSheet.open<PromptComponent, string, boolean>(PromptComponent, { disableClose: true, data: 'Add as an app' });
+      const response = await bsRef.afterDismissed().toPromise();
+      if (response) {
+        event.prompt();
+      }
     }
-  };
+  }
+
+  delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 }

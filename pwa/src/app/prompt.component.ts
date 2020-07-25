@@ -1,11 +1,11 @@
-import { Component, HostListener, Inject } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 
 @Component({
     selector: 'app-prompt',
     template: `
     <div class="install-buttons">
-        <button mat-raised-button color="accent" (click)="addToHomescreen(true)"><b>ADD AS AN APP</b></button>
+        <button mat-raised-button color="accent" (click)="addToHomescreen(true)"><b>{{prompt | uppercase}}</b></button>
         <button mat-button (click)="addToHomescreen(false)">LATER</button>
     </div>
     `,
@@ -25,18 +25,10 @@ import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bott
 export class PromptComponent {
 
     constructor(private bottomSheetRef: MatBottomSheetRef<PromptComponent>,
-                @Inject(MAT_BOTTOM_SHEET_DATA) private prompt: Window) { }
-
-    @HostListener('window:appinstalled', ['$event'])
-    afterAppInstalled() {
-        this.bottomSheetRef.dismiss();
-    }
+                @Inject(MAT_BOTTOM_SHEET_DATA) public prompt: string) { }
 
     addToHomescreen(response: boolean) {
-        if (response) {
-            this.prompt.prompt();
-        }
-        this.bottomSheetRef.dismiss();
+        this.bottomSheetRef.dismiss(response);
     }
 
 }
