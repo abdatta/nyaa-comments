@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { AppService } from './app.service';
 import { NyaaComment } from '../../../src/types';
+import { DeviceDetectorService } from 'ngx-device-detector';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { PromptComponent } from './prompt.component';
 
 @Component({
   selector: 'app-root',
@@ -46,9 +49,23 @@ import { NyaaComment } from '../../../src/types';
 export class AppComponent implements OnInit {
   comments: NyaaComment[] = [];
 
-  constructor(private service: AppService) { }
+  constructor(private service: AppService,
+              private bottomSheet: MatBottomSheet,
+              private deviceService: DeviceDetectorService) { }
 
   async ngOnInit() {
     this.comments = await this.service.fetchComments();
   }
+
+  @HostListener('window:beforeinstallprompt', ['$event'])
+  beforeInstallPrompt(event: Event) {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
+    event.preventDefault();
+
+    // Open prompt if device is mobile
+    if (this.deviceService.isMobile()) {
+      // Open prompt after .2 seconds
+      setTimeout(() => this.bottomSheet.open(PromptComponent, { disableClose: true, data: event }), 200)
+    }
+  };
 }
