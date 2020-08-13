@@ -13,7 +13,7 @@ const scraper = new Scraper();
 new Server(repository).start();
 
 const main = async () => {
-    const user = process.env.NYAA_USER || '';
+    const user = (process.env.NYAA_USER || '').trim();
     console.log(`Searching for new comments on ${user}'s torrents`);
     const items = [...await scraper.scrapeItems(user, 1), ...await scraper.scrapeItems(user, 2)]
     await Promise.all(items.filter(item => item.comments).map(async item => {
@@ -23,7 +23,7 @@ const main = async () => {
         const comments = await scraper.scrapeComments(item);
         await Promise.all(comments.map(comment => repository.upsertComments(comment)));
         console.log(`Updated ${item.comments} comments on torrent: ${item.name}`);
-        comments.slice(exists, item.comments).forEach(notify);
+        comments.slice(exists, item.comments).filter(comment => comment.user !== user).forEach(notify);
     }))
 };
 
