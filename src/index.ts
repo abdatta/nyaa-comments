@@ -36,6 +36,7 @@ const notify = async (comment: NyaaComment) => {
         title: `New Comment by ${comment.user}`,
         body: comment.comment,
         icon: comment.avatar,
+        data: comment,
         vibrate: [100, 50, 100]
     };
 
